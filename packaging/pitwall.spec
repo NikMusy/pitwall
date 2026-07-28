@@ -52,8 +52,22 @@ exe = EXE(
     upx=False,
 )
 
+# Same program, console attached. Without it a frozen crash is invisible:
+# the windowed build has nowhere to print a traceback.
+debug_exe = EXE(
+    pyz,
+    analysis.scripts,
+    exclude_binaries=True,
+    name="PitWall-console",
+    console=True,
+    debug=False,
+    strip=False,
+    upx=False,
+)
+
 COLLECT(
     exe,
+    debug_exe,
     analysis.binaries,
     analysis.datas,
     strip=False,

@@ -17,7 +17,7 @@ import uvicorn
 import webview
 from pitwall_hub.app import app, mount_web_ui, registry
 
-from pitwall_agent.serve import ServeConfig, stream_forever
+from pitwall_agent.serve import ServeConfig, mount_api, stream_forever
 from pitwall_agent.tailnet import detect as detect_tailnet
 from pitwall_agent.web_assets import find_web_build
 
@@ -53,6 +53,8 @@ def _startup(config: ServeConfig) -> DesktopStartup:
 
 
 def run(config: ServeConfig) -> int:
+    mount_api()
+
     build = find_web_build()
     if build is None or not mount_web_ui(build):
         # Without the UI there is no window to show, and silently opening a

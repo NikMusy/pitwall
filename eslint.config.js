@@ -3,7 +3,14 @@ import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
   {
-    ignores: ['**/dist/**', '**/node_modules/**', 'packages/schema/generated/**'],
+    ignores: [
+      '**/dist/**',
+      '**/node_modules/**',
+      'packages/schema/generated/**',
+      // Python virtualenv: pywebview ships browser-side JS that is not ours.
+      '.venv/**',
+      'packaging/build/**',
+    ],
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,

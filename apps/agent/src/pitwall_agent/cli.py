@@ -4,8 +4,10 @@ from __future__ import annotations
 
 import argparse
 import sys
+from pathlib import Path
 
 from pitwall_agent import serve as serve_module
+from pitwall_agent.ld.logs import latest_log
 from pitwall_agent.rooms_util import normalise_room_code
 from pitwall_agent.shm_probe import probe
 from pitwall_agent.tailnet import detect as detect_tailnet
@@ -63,7 +65,27 @@ def cmd_doctor() -> int:
     return 0
 
 
+def _resolve_replay(value: str | None) -> Path | None:
+    if value is None:
+        return None
+
+    if value != "latest":
+        path = Path(value)
+        if not path.is_file():
+            raise SystemExit(f"No such log: {path}")
+        return path
+
+    newest = latest_log()
+    if newest is None:
+        raise SystemExit(
+            "No recorded sessions found. Le Mans Ultimate writes them to its "
+            "LOG folder once 'Automatically Record Telemetry' is enabled."
+        )
+    return newest.path
+
+
 def cmd_serve(args: argparse.Namespace, *, windowed: bool) -> int:
+    replay = _resolve_replay(args.replay)
     host = args.host
     if host is None:
         identity = detect_tailnet()
@@ -89,6 +111,7 @@ def cmd_serve(args: argparse.Namespace, *, windowed: bool) -> int:
         room_code=normalise_room_code(args.room),
         token=args.token,
         rate_hz=args.rate,
+        replay=replay,
     )
 
     if windowed:
@@ -108,6 +131,17 @@ def _add_serve_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--room", default=None, help="Room code. Generated when omitted.")
     parser.add_argument("--token", default=None, help="Optional shared secret required to join.")
     parser.add_argument("--rate", type=int, default=DEFAULT_RATE_HZ)
+    parser.add_argument(
+        "--replay",
+        nargs="?",
+        const="latest",
+        default=None,
+        metavar="FILE",
+        help=(
+            "Play a recorded .ld session instead of reading live shared memory. "
+            "Without a path, the most recent LMU log is used."
+        ),
+    )
 
 
 def main() -> int:

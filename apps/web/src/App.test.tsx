@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { App } from './App';
+import { LiveView } from './LiveView';
 import { Gauge } from './Gauge';
 import { useAppStore } from './store';
 import { socketUrl } from './telemetry';
@@ -12,13 +12,13 @@ describe('App', () => {
   });
 
   it('asks where to connect before connecting anywhere', () => {
-    render(<App />);
+    render(<LiveView />);
     expect(screen.getByLabelText('Адрес пилота')).toBeDefined();
     expect(screen.getByLabelText('Код комнаты')).toBeDefined();
   });
 
   it('keeps the connect button disabled until a room code is entered', () => {
-    render(<App />);
+    render(<LiveView />);
     const button = screen.getByRole('button', { name: 'Подключиться' });
     expect((button as HTMLButtonElement).disabled).toBe(true);
   });
