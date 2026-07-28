@@ -9,7 +9,7 @@ Settled before M0 started:
 | Question | Decision | Consequence |
 |---|---|---|
 | Where does the hub run? | Locally on the driver's PC | No VPS, no docker-compose, no nginx/caddy in M6 |
-| How does the strategist connect? | **Tailscale** | Hub binds the tailnet interface; TLS comes from `tailscale serve` on `*.ts.net` |
+| How does the strategist connect? | **Tailscale** | Hub binds the tailnet interface; TLS comes from `tailscale serve` on `*.ts.net`. Reconfirmed after the repo was made public — "public" applies to the source, not to hub access |
 | Priority game for M1 | **Le Mans Ultimate** | M1 depends on the rF2 shared memory plugin being installed |
 | Public spectator mode | No — team only | Roles: `driver`, `engineer`. Room code plus optional token |
 | Track/car naming | Single normalised reference | `packages/schema` owns the mapping; raw per-game name is kept alongside |
@@ -41,13 +41,16 @@ generator.
 - [x] `apps/hub` skeleton (FastAPI, `/health`)
 - [x] `apps/web` skeleton (Vite, React, TS, Tailwind, Zustand, i18n)
 - [x] `ci.yml` written, green locally
-- [ ] Push to GitHub, confirm CI green on the runner
-- [ ] Tag `v0.0.1-m0`
+- [x] Pushed to <https://github.com/NikMusy/pitwall>, tagged `v0.0.1-m0`
+- [ ] **Blocked:** CI green on the runner
 
 Local state: 76 channels generate to both languages, mypy strict clean,
 79 Python tests and 3 web tests pass, production build succeeds.
 
-Done when: CI is green on the runner and the schema cannot drift.
+The runner never started either job: *"The job was not started because your
+account is locked due to a billing issue."* Not a code failure and not fixable
+from here — it needs the GitHub account billing resolved. M0 stays formally
+open until a run goes green.
 
 ### M1 — LMU live
 
