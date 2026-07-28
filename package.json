@@ -1,0 +1,23 @@
+{
+  "name": "pitwall",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "workspaces": [
+    "packages/schema",
+    "apps/web"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace @pitwall/web",
+    "build": "npm run build --workspace @pitwall/web",
+    "test": "npm run test --workspace @pitwall/web",
+    "lint": "eslint .",
+    "typecheck": "tsc --build --force"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.17.0",
+    "eslint": "^9.17.0",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.18.0"
+  }
+}

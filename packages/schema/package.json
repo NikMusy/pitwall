@@ -1,0 +1,11 @@
+{
+  "name": "@pitwall/schema",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "generated/schema.ts",
+  "types": "generated/schema.ts",
+  "exports": {
+    ".": "./generated/schema.ts"
+  }
+}

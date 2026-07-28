@@ -1,0 +1,10 @@
+@import 'tailwindcss';
+
+/* Dark by default: this gets read on a pit wall, not in an office. */
+@theme {
+  --color-bg: oklch(0.16 0 0);
+}
+
+html {
+  color-scheme: dark;
+}

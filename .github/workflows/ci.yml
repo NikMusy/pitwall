@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  python:
+    # Windows: the agent reads Windows shared memory, so the probe tests are
+    # meaningless anywhere else.
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - run: uv sync --all-packages --frozen
+
+      - name: Schema codegen is current
+        run: uv run pitwall-codegen --check
+
+      - run: uv run ruff check .
+      - run: uv run ruff format --check .
+      - run: uv run mypy packages/schema/src apps/agent/src apps/hub/src
+      - run: uv run pytest -q
+
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run test --workspace @pitwall/web
+      - run: npm run build --workspace @pitwall/web
