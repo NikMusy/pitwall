@@ -1,0 +1,427 @@
+# PitWall channel dictionary — the single source of truth.
+#
+# Python and TypeScript definitions are generated from this file.
+# Do not hand-edit generated output; edit here and run `uv run pitwall-codegen`.
+#
+# Storage units are SI base units. `display_unit` is what the UI shows by
+# default; conversion happens at display time, never at ingest.
+
+version: 1
+
+axes:
+  corner:
+    - { id: fl, label: FL }
+    - { id: fr, label: FR }
+    - { id: rl, label: RL }
+    - { id: rr, label: RR }
+  band:
+    - { id: i, label: { en: Inner, ru: "внутр." } }
+    - { id: m, label: { en: Middle, ru: "сред." } }
+    - { id: o, label: { en: Outer, ru: "внеш." } }
+
+groups:
+  - { id: session,     display: { en: Session,      ru: Сессия } }
+  - { id: vehicle,     display: { en: Vehicle,      ru: Машина } }
+  - { id: inputs,      display: { en: Inputs,       ru: Управление } }
+  - { id: motion,      display: { en: Motion,       ru: Движение } }
+  - { id: fuel,        display: { en: Fuel,         ru: Топливо } }
+  - { id: tyres,       display: { en: Tyres,        ru: Шины } }
+  - { id: brakes,      display: { en: Brakes,       ru: Тормоза } }
+  - { id: suspension,  display: { en: Suspension,   ru: Подвеска } }
+  - { id: engine,      display: { en: Engine,       ru: Двигатель } }
+  - { id: electronics, display: { en: Electronics,  ru: Электроника } }
+  - { id: damage,      display: { en: Damage,       ru: Повреждения } }
+  - { id: weather,     display: { en: Weather,      ru: Погода } }
+
+channels:
+  # --- session ------------------------------------------------------------
+  - key: time
+    display: { en: Time, ru: Время }
+    unit: s
+    group: session
+    dtype: f64
+    rate_hz: 100
+    doc: Seconds since session start. Monotonic, the master time base.
+
+  - key: distance
+    display: { en: Distance, ru: Дистанция }
+    unit: m
+    group: session
+    dtype: f64
+    rate_hz: 100
+    doc: >
+      Distance travelled along the lap, measured from the start/finish line.
+      This is the X axis for lap comparison, so it must come from the game's
+      own lap distance where available rather than integrated speed.
+
+  - key: lap
+    display: { en: Lap, ru: Круг }
+    unit: null
+    group: session
+    dtype: i32
+    rate_hz: 100
+    doc: Current lap number, 1-based.
+
+  - key: lap_time
+    display: { en: Lap Time, ru: Время круга }
+    unit: s
+    group: session
+    dtype: f64
+    rate_hz: 100
+    doc: Elapsed time within the current lap.
+
+  # --- vehicle ------------------------------------------------------------
+  - key: speed
+    display: { en: Speed, ru: Скорость }
+    unit: m/s
+    display_unit: km/h
+    group: vehicle
+    dtype: f32
+    rate_hz: 100
+
+  - key: rpm
+    display: { en: RPM, ru: Обороты }
+    unit: rpm
+    group: vehicle
+    dtype: f32
+    rate_hz: 100
+
+  - key: gear
+    display: { en: Gear, ru: Передача }
+    unit: null
+    group: vehicle
+    dtype: i32
+    rate_hz: 100
+    doc: -1 reverse, 0 neutral, 1..n forward.
+
+  # --- inputs -------------------------------------------------------------
+  - key: throttle
+    display: { en: Throttle, ru: Газ }
+    unit: ratio
+    display_unit: "%"
+    group: inputs
+    dtype: f32
+    rate_hz: 100
+    range: [0, 1]
+
+  - key: brake
+    display: { en: Brake, ru: Тормоз }
+    unit: ratio
+    display_unit: "%"
+    group: inputs
+    dtype: f32
+    rate_hz: 100
+    range: [0, 1]
+
+  - key: clutch
+    display: { en: Clutch, ru: Сцепление }
+    unit: ratio
+    display_unit: "%"
+    group: inputs
+    dtype: f32
+    rate_hz: 100
+    range: [0, 1]
+
+  - key: steering
+    display: { en: Steering, ru: Руль }
+    unit: ratio
+    group: inputs
+    dtype: f32
+    rate_hz: 100
+    range: [-1, 1]
+    doc: Normalised, -1 full left to +1 full right.
+
+  # --- motion -------------------------------------------------------------
+  - key: pos_x
+    display: { en: Pos X, ru: Позиция X }
+    unit: m
+    group: motion
+    dtype: f32
+    rate_hz: 100
+  - key: pos_y
+    display: { en: Pos Y, ru: Позиция Y }
+    unit: m
+    group: motion
+    dtype: f32
+    rate_hz: 100
+  - key: pos_z
+    display: { en: Pos Z, ru: Позиция Z }
+    unit: m
+    group: motion
+    dtype: f32
+    rate_hz: 100
+    doc: >
+      World coordinates. The track map is built from pos_x/pos_z in rF2's
+      convention where Y is vertical — providers normalise so that the map
+      plane is always x/y.
+
+  - key: yaw
+    display: { en: Yaw, ru: Рыскание }
+    unit: rad
+    display_unit: deg
+    group: motion
+    dtype: f32
+    rate_hz: 100
+  - key: pitch
+    display: { en: Pitch, ru: Тангаж }
+    unit: rad
+    display_unit: deg
+    group: motion
+    dtype: f32
+    rate_hz: 100
+  - key: roll
+    display: { en: Roll, ru: Крен }
+    unit: rad
+    display_unit: deg
+    group: motion
+    dtype: f32
+    rate_hz: 100
+
+  - key: accel_lat
+    display: { en: G Lat, ru: G поперечное }
+    unit: m/s2
+    display_unit: g
+    group: motion
+    dtype: f32
+    rate_hz: 100
+  - key: accel_long
+    display: { en: G Long, ru: G продольное }
+    unit: m/s2
+    display_unit: g
+    group: motion
+    dtype: f32
+    rate_hz: 100
+  - key: accel_vert
+    display: { en: G Vert, ru: G вертикальное }
+    unit: m/s2
+    display_unit: g
+    group: motion
+    dtype: f32
+    rate_hz: 100
+
+  # --- fuel ---------------------------------------------------------------
+  - key: fuel_level
+    display: { en: Fuel Level, ru: Топливо }
+    unit: L
+    group: fuel
+    dtype: f32
+    rate_hz: 10
+
+  - key: fuel_used_lap
+    display: { en: Fuel Used (Lap), ru: Расход за круг }
+    unit: L
+    group: fuel
+    dtype: f32
+    rate_hz: 10
+    derived: true
+    doc: >
+      Derived, not read from the game: fuel level at lap start minus current.
+      Only valid once a full lap has been observed.
+
+  # --- tyres --------------------------------------------------------------
+  - key: tyre_temp_{corner}_{band}
+    expand: [corner, band]
+    display: { en: "Tyre Temp {corner} {band}", ru: "Темп. шины {corner} {band}" }
+    unit: K
+    display_unit: degC
+    group: tyres
+    dtype: f32
+    rate_hz: 20
+
+  - key: tyre_press_{corner}
+    expand: [corner]
+    display: { en: "Tyre Press {corner}", ru: "Давление {corner}" }
+    unit: kPa
+    display_unit: bar
+    group: tyres
+    dtype: f32
+    rate_hz: 20
+
+  - key: tyre_wear_{corner}
+    expand: [corner]
+    display: { en: "Tyre Wear {corner}", ru: "Износ {corner}" }
+    unit: ratio
+    display_unit: "%"
+    group: tyres
+    dtype: f32
+    rate_hz: 5
+    range: [0, 1]
+    doc: 0 is new, 1 is fully worn. Providers invert games that report the opposite.
+
+  # --- brakes -------------------------------------------------------------
+  - key: brake_temp_{corner}
+    expand: [corner]
+    display: { en: "Brake Temp {corner}", ru: "Темп. тормоза {corner}" }
+    unit: K
+    display_unit: degC
+    group: brakes
+    dtype: f32
+    rate_hz: 20
+
+  - key: brake_pressure_{corner}
+    expand: [corner]
+    display: { en: "Brake Press {corner}", ru: "Давление тормоза {corner}" }
+    unit: bar
+    group: brakes
+    dtype: f32
+    rate_hz: 100
+
+  # --- suspension ---------------------------------------------------------
+  - key: susp_travel_{corner}
+    expand: [corner]
+    display: { en: "Susp Travel {corner}", ru: "Ход подвески {corner}" }
+    unit: m
+    display_unit: mm
+    group: suspension
+    dtype: f32
+    rate_hz: 100
+
+  - key: ride_height_{corner}
+    expand: [corner]
+    display: { en: "Ride Height {corner}", ru: "Клиренс {corner}" }
+    unit: m
+    display_unit: mm
+    group: suspension
+    dtype: f32
+    rate_hz: 100
+
+  # --- engine -------------------------------------------------------------
+  - key: water_temp
+    display: { en: Water Temp, ru: Темп. воды }
+    unit: K
+    display_unit: degC
+    group: engine
+    dtype: f32
+    rate_hz: 5
+
+  - key: oil_temp
+    display: { en: Oil Temp, ru: Темп. масла }
+    unit: K
+    display_unit: degC
+    group: engine
+    dtype: f32
+    rate_hz: 5
+
+  # --- electronics --------------------------------------------------------
+  - key: drs
+    display: { en: DRS, ru: DRS }
+    unit: null
+    group: electronics
+    dtype: u8
+    rate_hz: 20
+    doc: 0 unavailable, 1 available, 2 open. Null on cars without DRS.
+
+  - key: ers_deploy
+    display: { en: ERS Deploy, ru: ERS отдача }
+    unit: J
+    group: electronics
+    dtype: f32
+    rate_hz: 20
+
+  - key: ers_store
+    display: { en: ERS Store, ru: ERS запас }
+    unit: J
+    group: electronics
+    dtype: f32
+    rate_hz: 20
+
+  - key: abs_active
+    display: { en: ABS Active, ru: ABS активна }
+    unit: null
+    group: electronics
+    dtype: bool
+    rate_hz: 100
+
+  - key: tc_active
+    display: { en: TC Active, ru: TC активна }
+    unit: null
+    group: electronics
+    dtype: bool
+    rate_hz: 100
+
+  # --- damage -------------------------------------------------------------
+  - key: damage_front
+    display: { en: Damage Front, ru: Повреждение перед }
+    unit: ratio
+    display_unit: "%"
+    group: damage
+    dtype: f32
+    rate_hz: 2
+    range: [0, 1]
+  - key: damage_rear
+    display: { en: Damage Rear, ru: Повреждение зад }
+    unit: ratio
+    display_unit: "%"
+    group: damage
+    dtype: f32
+    rate_hz: 2
+    range: [0, 1]
+  - key: damage_left
+    display: { en: Damage Left, ru: Повреждение лево }
+    unit: ratio
+    display_unit: "%"
+    group: damage
+    dtype: f32
+    rate_hz: 2
+    range: [0, 1]
+  - key: damage_right
+    display: { en: Damage Right, ru: Повреждение право }
+    unit: ratio
+    display_unit: "%"
+    group: damage
+    dtype: f32
+    rate_hz: 2
+    range: [0, 1]
+  - key: damage_engine
+    display: { en: Damage Engine, ru: Повреждение двигателя }
+    unit: ratio
+    display_unit: "%"
+    group: damage
+    dtype: f32
+    rate_hz: 2
+    range: [0, 1]
+  - key: damage_gearbox
+    display: { en: Damage Gearbox, ru: Повреждение КПП }
+    unit: ratio
+    display_unit: "%"
+    group: damage
+    dtype: f32
+    rate_hz: 2
+    range: [0, 1]
+
+  # --- weather ------------------------------------------------------------
+  - key: air_temp
+    display: { en: Air Temp, ru: Темп. воздуха }
+    unit: K
+    display_unit: degC
+    group: weather
+    dtype: f32
+    rate_hz: 1
+  - key: track_temp
+    display: { en: Track Temp, ru: Темп. трассы }
+    unit: K
+    display_unit: degC
+    group: weather
+    dtype: f32
+    rate_hz: 1
+  - key: rain_pct
+    display: { en: Rain, ru: Дождь }
+    unit: ratio
+    display_unit: "%"
+    group: weather
+    dtype: f32
+    rate_hz: 1
+    range: [0, 1]
+  - key: wind_speed
+    display: { en: Wind Speed, ru: Скорость ветра }
+    unit: m/s
+    group: weather
+    dtype: f32
+    rate_hz: 1
+  - key: wind_dir
+    display: { en: Wind Direction, ru: Направление ветра }
+    unit: rad
+    display_unit: deg
+    group: weather
+    dtype: f32
+    rate_hz: 1

@@ -1,0 +1,53 @@
+[project]
+name = "pitwall"
+version = "0.0.1"
+description = "Open telemetry and race-strategy platform for sim racing"
+requires-python = ">=3.12"
+license = { text = "MIT" }
+dependencies = [
+    "pitwall-schema",
+    "pitwall-agent",
+    "pitwall-hub",
+]
+
+[tool.uv]
+package = false
+
+[tool.uv.workspace]
+members = ["packages/schema", "apps/agent", "apps/hub"]
+
+[tool.uv.sources]
+pitwall-schema = { workspace = true }
+pitwall-agent = { workspace = true }
+pitwall-hub = { workspace = true }
+
+[dependency-groups]
+dev = [
+    "ruff>=0.9",
+    "mypy>=1.14",
+    "pytest>=8.3",
+    "pytest-asyncio>=0.25",
+    "types-PyYAML>=6.0",
+    "httpx>=0.28",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+extend-exclude = ["**/_generated.py"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+exclude = ["_generated\\.py$"]
+
+[[tool.mypy.overrides]]
+module = ["pitwall_schema._generated"]
+ignore_errors = true
+
+[tool.pytest.ini_options]
+testpaths = ["packages/schema/tests", "apps/agent/tests", "apps/hub/tests"]
+asyncio_mode = "auto"

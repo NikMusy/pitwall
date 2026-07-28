@@ -1,0 +1,9 @@
+# Normalise line endings so generated files compare byte-for-byte across
+# platforms — the codegen staleness check in CI depends on it.
+* text=auto eol=lf
+
+*.png binary
+*.ld binary
+*.ldx binary
+*.pwsess binary
+*.parquet binary

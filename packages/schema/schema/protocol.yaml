@@ -1,0 +1,100 @@
+# PitWall wire protocol — the single source of truth.
+#
+# Frames are MessagePack, not JSON. At 100 Hz across 60 channels JSON does not
+# survive, and the sample payload is a typed array, not an object graph.
+
+version: 1
+
+roles:
+  - { id: driver,   doc: The agent streaming from a car. May be several per room in endurance. }
+  - { id: engineer, doc: Full read access including strategy. This is the strategist seat. }
+
+# No spectator role: access is team-only by decision, see PLAN.md.
+
+frames:
+  - id: hello
+    direction: client_to_hub
+    doc: First frame on every connection. The hub answers with `welcome` or `error`.
+    fields:
+      - { name: protocol_version, type: u16 }
+      - { name: role, type: enum, enum: roles }
+      - { name: room, type: string, doc: Six-character room code. }
+      - { name: token, type: string, optional: true }
+      - { name: client_version, type: string }
+      - { name: driver_name, type: string, optional: true, doc: Required for role=driver. }
+
+  - id: welcome
+    direction: hub_to_client
+    doc: Confirms the connection and describes what the client is about to receive.
+    fields:
+      - { name: session_id, type: string }
+      - { name: channels, type: list, item: string, doc: Channel keys actually present in this stream. }
+      - { name: rate_hz, type: u16, doc: Effective send rate after downsampling. }
+      - { name: game, type: string, doc: Source game id, or null if no agent is connected yet. }
+
+  - id: samples
+    direction: bidirectional
+    doc: >
+      The hot path. `values` is column-major: one array per channel in the same
+      order as `welcome.channels`, each of length `count`. Column-major because
+      the renderer wants contiguous per-channel buffers and transposing 100 Hz
+      of data on arrival is wasted work.
+    fields:
+      - { name: t0, type: f64, doc: Session time of the first sample in the block. }
+      - { name: count, type: u16 }
+      - { name: values, type: columns }
+
+  - id: scoring
+    direction: hub_to_client
+    doc: >
+      All cars in the session, roughly 5 Hz. This is what live timing and the
+      whole strategy module are built on, so it always carries every car, not
+      just the player's.
+    fields:
+      - { name: t, type: f64 }
+      - { name: cars, type: list, item: car_scoring }
+
+  - id: session_state
+    direction: hub_to_client
+    fields:
+      - { name: track, type: string, doc: Normalised track id. }
+      - { name: track_raw, type: string, doc: Raw name as the game reported it. }
+      - { name: session_type, type: string }
+      - { name: time_remaining, type: f64, optional: true }
+      - { name: laps_remaining, type: u16, optional: true }
+      - { name: flag, type: string, doc: green, yellow, fcy, sc, red, chequered }
+
+  - id: agent_status
+    direction: bidirectional
+    doc: >
+      Reports what the agent can and cannot do right now. An agent that lost the
+      game says so here, and the UI surfaces it. Never hidden.
+    fields:
+      - { name: connected_to_game, type: bool }
+      - { name: game, type: string, optional: true }
+      - { name: problem, type: string, optional: true, doc: Human-readable cause when connected_to_game is false. }
+
+  - id: error
+    direction: hub_to_client
+    fields:
+      - { name: code, type: string }
+      - { name: message, type: string }
+
+structs:
+  car_scoring:
+    doc: One car's timing state. Fields absent from a given game stay null.
+    fields:
+      - { name: slot_id, type: u16 }
+      - { name: driver_name, type: string }
+      - { name: car_class, type: string }
+      - { name: place, type: u8 }
+      - { name: lap, type: u16 }
+      - { name: last_lap, type: f64, optional: true }
+      - { name: best_lap, type: f64, optional: true }
+      - { name: gap_to_leader, type: f64, optional: true }
+      - { name: gap_ahead, type: f64, optional: true }
+      - { name: sector, type: u8 }
+      - { name: pit_stops, type: u8 }
+      - { name: in_pits, type: bool }
+      - { name: tyre_compound, type: string, optional: true }
+      - { name: tyre_age_laps, type: u16, optional: true }
