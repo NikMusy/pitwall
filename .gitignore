@@ -1,0 +1,48 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+dist/
+build/
+
+# uv
+uv.lock.bak
+
+# Node
+node_modules/
+.vite/
+*.tsbuildinfo
+
+# PyInstaller
+packaging/build/
+packaging/dist/
+*.spec.bak
+
+# Telemetry data — never commit recorded sessions, they are large and personal
+*.pwsess
+*.ld
+*.ldx
+*.ibt
+data/
+recordings/
+raw-dumps/
+
+# Test fixtures are the exception: small, curated, checked in deliberately
+!tests/fixtures/**/*.ld
+!tests/fixtures/**/*.pwsess
+
+# Local config and secrets
+.env
+.env.local
+*.local.json
+
+# Editors / OS
+.vscode/
+.idea/
+Thumbs.db
+desktop.ini
