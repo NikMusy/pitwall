@@ -10,22 +10,26 @@ type Frame =
   | { f: 'samples'; count: number; rows: SampleRow[] }
   | { f: 'error'; code: string; message: string };
 
-/** Same origin as the page: the strategist reached it over the tailnet, so the
- * socket goes back to exactly the address that served the page. */
-function socketUrl(room: string, token: string): string {
-  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+/**
+ * `host` empty means the machine serving this page — that is the driver
+ * watching their own car. A strategist types the driver's tailnet address
+ * instead, so the socket has to be able to point somewhere else entirely.
+ */
+export function socketUrl(host: string, room: string, token: string): string {
+  const target = host.trim() || window.location.host;
+  const withoutScheme = target.replace(/^\w+:\/\//, '').replace(/\/+$/, '');
+  const secure = window.location.protocol === 'https:' && !host.trim();
   const params = new URLSearchParams({ room });
   if (token) {
     params.set('token', token);
   }
-  return `${protocol}//${window.location.host}/ws/view?${params.toString()}`;
+  return `${secure ? 'wss:' : 'ws:'}//${withoutScheme}/ws/view?${params.toString()}`;
 }
 
-export function connect(room: string, token = ''): () => void {
-  const store = useAppStore.getState();
-  store.setConnection('connecting');
+export function connect(host: string, room: string, token = ''): () => void {
+  useAppStore.getState().setConnection('connecting');
 
-  const socket = new WebSocket(socketUrl(room, token));
+  const socket = new WebSocket(socketUrl(host, room, token));
   socket.binaryType = 'arraybuffer';
 
   socket.onmessage = (event: MessageEvent<ArrayBuffer>) => {
@@ -50,13 +54,15 @@ export function connect(room: string, token = ''): () => void {
   };
 
   socket.onerror = () => {
-    useAppStore.getState().setConnection('disconnected', 'WebSocket error');
+    useAppStore
+      .getState()
+      .setConnection('disconnected', `Не удалось подключиться к ${host || 'этой машине'}`);
   };
 
   socket.onclose = () => {
     const state = useAppStore.getState();
     if (state.connection !== 'disconnected') {
-      state.setConnection('disconnected', 'Connection closed');
+      state.setConnection('disconnected', 'Соединение закрыто');
     }
   };
 

@@ -22,7 +22,8 @@ if not (WEB_DIST / "index.html").is_file():
 hidden = (
     collect_submodules("uvicorn")
     + collect_submodules("websockets")
-    + ["anyio", "msgpack"]
+    + collect_submodules("webview")
+    + ["anyio", "msgpack", "clr_loader", "pythonnet"]
 )
 
 analysis = Analysis(
@@ -44,7 +45,8 @@ exe = EXE(
     analysis.scripts,
     exclude_binaries=True,
     name="PitWall",
-    console=True,
+    # No console window: double-clicking must open the app, not a terminal.
+    console=False,
     debug=False,
     strip=False,
     upx=False,

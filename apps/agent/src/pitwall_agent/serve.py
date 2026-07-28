@@ -54,6 +54,11 @@ async def _publish_status(room: Room, *, connected: bool, problem: str | None) -
     )
 
 
+def stream_forever(room: Room, config: ServeConfig) -> None:
+    """Blocking wrapper for the desktop window, which runs this on its own thread."""
+    asyncio.run(_stream(room, config))
+
+
 async def _stream(room: Room, config: ServeConfig) -> None:
     provider = LmuProvider()
     period = 1.0 / config.rate_hz

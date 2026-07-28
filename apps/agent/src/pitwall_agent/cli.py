@@ -63,20 +63,25 @@ def cmd_doctor() -> int:
     return 0
 
 
-def cmd_serve(args: argparse.Namespace) -> int:
+def cmd_serve(args: argparse.Namespace, *, windowed: bool) -> int:
     host = args.host
     if host is None:
         identity = detect_tailnet()
         if identity is None:
-            print(
-                "Could not determine the Tailscale address, and no --host was given.\n"
-                "Start Tailscale, or pass --host explicitly.",
-                file=sys.stderr,
-            )
-            return 1
-        host = identity.ip
-        if identity.dns_name:
-            print(f"Tailnet name: {identity.dns_name}")
+            if not windowed:
+                print(
+                    "Could not determine the Tailscale address, and no --host was given.\n"
+                    "Start Tailscale, or pass --host explicitly.",
+                    file=sys.stderr,
+                )
+                return 1
+            # The window is still useful without a tailnet: the driver can
+            # watch their own car even if no strategist can reach them.
+            host = "127.0.0.1"
+        else:
+            host = identity.ip
+            if identity.dns_name and not windowed:
+                print(f"Tailnet name: {identity.dns_name}")
 
     config = serve_module.ServeConfig(
         host=host,
@@ -85,35 +90,43 @@ def cmd_serve(args: argparse.Namespace) -> int:
         token=args.token,
         rate_hz=args.rate,
     )
+
+    if windowed:
+        from pitwall_agent import desktop
+
+        return desktop.run(config)
     return serve_module.run(config)
 
 
-def main() -> int:
-    parser = argparse.ArgumentParser(prog="pitwall-agent", description=__doc__)
-    sub = parser.add_subparsers(dest="command", required=True)
-
-    sub.add_parser("doctor", help="Check which telemetry sources are reachable")
-
-    serve_parser = sub.add_parser("serve", help="Stream telemetry to a strategist over the tailnet")
-    serve_parser.add_argument(
+def _add_serve_arguments(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument(
         "--host",
         default=None,
         help="Bind address. Defaults to this machine's Tailscale address.",
     )
-    serve_parser.add_argument("--port", type=int, default=DEFAULT_PORT)
-    serve_parser.add_argument("--room", default=None, help="Room code. Generated when omitted.")
-    serve_parser.add_argument(
-        "--token", default=None, help="Optional shared secret required to join."
-    )
-    serve_parser.add_argument("--rate", type=int, default=DEFAULT_RATE_HZ)
+    parser.add_argument("--port", type=int, default=DEFAULT_PORT)
+    parser.add_argument("--room", default=None, help="Room code. Generated when omitted.")
+    parser.add_argument("--token", default=None, help="Optional shared secret required to join.")
+    parser.add_argument("--rate", type=int, default=DEFAULT_RATE_HZ)
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(prog="PitWall", description=__doc__)
+    # No required subcommand: double-clicking the executable passes no
+    # arguments at all, and that has to open the window rather than print usage.
+    sub = parser.add_subparsers(dest="command")
+
+    sub.add_parser("doctor", help="Check which telemetry sources are reachable")
+    _add_serve_arguments(sub.add_parser("serve", help="Headless: stream without opening a window"))
+    _add_serve_arguments(sub.add_parser("app", help="Open the desktop window (default)"))
+    _add_serve_arguments(parser)
 
     args = parser.parse_args()
     if args.command == "doctor":
         return cmd_doctor()
     if args.command == "serve":
-        return cmd_serve(args)
-
-    parser.error(f"unknown command {args.command}")
+        return cmd_serve(args, windowed=False)
+    return cmd_serve(args, windowed=True)
 
 
 if __name__ == "__main__":

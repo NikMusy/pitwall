@@ -4,21 +4,46 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { App } from './App';
 import { Gauge } from './Gauge';
 import { useAppStore } from './store';
+import { socketUrl } from './telemetry';
 
 describe('App', () => {
   beforeEach(() => {
     useAppStore.setState({ connection: 'disconnected', problem: null, latest: null, rows: [] });
   });
 
-  it('asks for a room code before connecting anywhere', () => {
+  it('asks where to connect before connecting anywhere', () => {
     render(<App />);
+    expect(screen.getByLabelText('Адрес пилота')).toBeDefined();
     expect(screen.getByLabelText('Код комнаты')).toBeDefined();
   });
 
-  it('keeps the join button disabled until a code is entered', () => {
+  it('keeps the connect button disabled until a room code is entered', () => {
     render(<App />);
     const button = screen.getByRole('button', { name: 'Подключиться' });
     expect((button as HTMLButtonElement).disabled).toBe(true);
+  });
+});
+
+describe('socketUrl', () => {
+  it('falls back to the serving machine when no host is given', () => {
+    expect(socketUrl('', 'BCDFGH', '')).toContain(window.location.host);
+  });
+
+  it('points at the driver when a host is given', () => {
+    const url = socketUrl('nikmusy.tail611341.ts.net:8420', 'BCDFGH', '');
+    expect(url).toBe('ws://nikmusy.tail611341.ts.net:8420/ws/view?room=BCDFGH');
+  });
+
+  it('tolerates a pasted address with a scheme or trailing slash', () => {
+    // Someone will paste the whole thing out of a chat message.
+    expect(socketUrl('http://host:8420/', 'BCDFGH', '')).toBe(
+      'ws://host:8420/ws/view?room=BCDFGH',
+    );
+  });
+
+  it('includes the token only when there is one', () => {
+    expect(socketUrl('host:1', 'BCDFGH', '')).not.toContain('token');
+    expect(socketUrl('host:1', 'BCDFGH', 'secret')).toContain('token=secret');
   });
 });
 
