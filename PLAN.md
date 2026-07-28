@@ -33,17 +33,21 @@ generator.
 
 ### M0 — skeleton, schema codegen, CI
 
-- [ ] Repo initialised, MIT, `.gitignore`, README
-- [ ] `CLAUDE.md`, `PLAN.md`
-- [ ] `packages/schema`: `channels.yaml` + `protocol.yaml`
-- [ ] Codegen to Python and TypeScript, staleness check in CI
-- [ ] `apps/agent` skeleton (uv, ruff, mypy, pytest)
-- [ ] `apps/hub` skeleton (FastAPI, `/health`)
-- [ ] `apps/web` skeleton (Vite, React, TS, Tailwind, Zustand, i18n)
-- [ ] `ci.yml` green
+- [x] Repo initialised, MIT, `.gitignore`, README
+- [x] `CLAUDE.md`, `PLAN.md`
+- [x] `packages/schema`: `channels.yaml` + `protocol.yaml`
+- [x] Codegen to Python and TypeScript, staleness check in CI
+- [x] `apps/agent` skeleton (uv, ruff, mypy, pytest)
+- [x] `apps/hub` skeleton (FastAPI, `/health`)
+- [x] `apps/web` skeleton (Vite, React, TS, Tailwind, Zustand, i18n)
+- [x] `ci.yml` written, green locally
+- [ ] Push to GitHub, confirm CI green on the runner
 - [ ] Tag `v0.0.1-m0`
 
-Done when: CI is green on an empty project and the schema cannot drift.
+Local state: 76 channels generate to both languages, mypy strict clean,
+79 Python tests and 3 web tests pass, production build succeeds.
+
+Done when: CI is green on the runner and the schema cannot drift.
 
 ### M1 — LMU live
 
