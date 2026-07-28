@@ -10,6 +10,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@msgpack/msgpack": "^3.0.0",
     "@pitwall/schema": "*",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

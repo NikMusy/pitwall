@@ -5,6 +5,9 @@ description = "Telemetry agent: reads sim shared memory / UDP and streams normal
 requires-python = ">=3.12"
 dependencies = [
     "pitwall-schema",
+    # The driver runs the agent, and the agent starts the hub in process so the
+    # local car needs no network hop before fan-out.
+    "pitwall-hub",
     "msgpack>=1.1",
     "websockets>=14.0",
 ]
@@ -21,3 +24,4 @@ packages = ["src/pitwall_agent"]
 
 [tool.uv.sources]
 pitwall-schema = { workspace = true }
+pitwall-hub = { workspace = true }

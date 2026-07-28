@@ -5,7 +5,10 @@ from __future__ import annotations
 import argparse
 import sys
 
+from pitwall_agent import serve as serve_module
+from pitwall_agent.rooms_util import normalise_room_code
 from pitwall_agent.shm_probe import probe
+from pitwall_agent.tailnet import detect as detect_tailnet
 
 # Published by rFactor2SharedMemoryMapPlugin64.dll, which LMU and rF2 share.
 RF2_SECTIONS = {
@@ -20,6 +23,9 @@ ACC_SECTIONS = {
     "Local\\acpmf_graphics": "ACC session and lap state",
     "Local\\acpmf_static": "ACC car and track identity",
 }
+
+DEFAULT_PORT = 8420
+DEFAULT_RATE_HZ = 50
 
 
 def cmd_doctor() -> int:
@@ -38,6 +44,13 @@ def cmd_doctor() -> int:
             found_any = found_any or result.exists
             print(f"  [{mark}] {name:<32} {result.detail:<20} ({purpose})")
 
+    identity = detect_tailnet()
+    print("\nTailscale")
+    if identity is None:
+        print("  [MISS] not available — the strategist cannot reach this machine")
+    else:
+        print(f"  [ok  ] {identity.ip}  {identity.dns_name or ''}")
+
     if not found_any:
         print(
             "\nNo telemetry sections are published.\n"
@@ -50,14 +63,55 @@ def cmd_doctor() -> int:
     return 0
 
 
+def cmd_serve(args: argparse.Namespace) -> int:
+    host = args.host
+    if host is None:
+        identity = detect_tailnet()
+        if identity is None:
+            print(
+                "Could not determine the Tailscale address, and no --host was given.\n"
+                "Start Tailscale, or pass --host explicitly.",
+                file=sys.stderr,
+            )
+            return 1
+        host = identity.ip
+        if identity.dns_name:
+            print(f"Tailnet name: {identity.dns_name}")
+
+    config = serve_module.ServeConfig(
+        host=host,
+        port=args.port,
+        room_code=normalise_room_code(args.room),
+        token=args.token,
+        rate_hz=args.rate,
+    )
+    return serve_module.run(config)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(prog="pitwall-agent", description=__doc__)
     sub = parser.add_subparsers(dest="command", required=True)
+
     sub.add_parser("doctor", help="Check which telemetry sources are reachable")
+
+    serve_parser = sub.add_parser("serve", help="Stream telemetry to a strategist over the tailnet")
+    serve_parser.add_argument(
+        "--host",
+        default=None,
+        help="Bind address. Defaults to this machine's Tailscale address.",
+    )
+    serve_parser.add_argument("--port", type=int, default=DEFAULT_PORT)
+    serve_parser.add_argument("--room", default=None, help="Room code. Generated when omitted.")
+    serve_parser.add_argument(
+        "--token", default=None, help="Optional shared secret required to join."
+    )
+    serve_parser.add_argument("--rate", type=int, default=DEFAULT_RATE_HZ)
 
     args = parser.parse_args()
     if args.command == "doctor":
         return cmd_doctor()
+    if args.command == "serve":
+        return cmd_serve(args)
 
     parser.error(f"unknown command {args.command}")
 

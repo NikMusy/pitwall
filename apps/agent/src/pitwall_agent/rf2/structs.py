@@ -20,6 +20,20 @@ MAX_MAPPED_VEHICLES = 128
 MAX_MAPPED_IDS = 512
 
 
+class rF2MappedBufferVersionBlock(ctypes.Structure):
+    """Header every mapped buffer starts with.
+
+    C++ declares this as a base class and ctypes lays inherited fields out
+    first, so subclassing reproduces the layout exactly.
+    """
+
+    _pack_ = 4
+    _fields_ = [
+        ("mVersionUpdateBegin", ctypes.c_uint),
+        ("mVersionUpdateEnd", ctypes.c_uint),
+    ]
+
+
 class rF2Vec3(ctypes.Structure):
     _pack_ = 4
     _fields_ = [
@@ -148,11 +162,9 @@ class rF2VehicleTelemetry(ctypes.Structure):
     ]
 
 
-class rF2Telemetry(ctypes.Structure):
+class rF2Telemetry(rF2MappedBufferVersionBlock):
     _pack_ = 4
     _fields_ = [
-        ("mVersionUpdateBegin", ctypes.c_uint),
-        ("mVersionUpdateEnd", ctypes.c_uint),
         ("mBytesUpdatedHint", ctypes.c_int),
         ("mNumVehicles", ctypes.c_int),
         ("mVehicles", rF2VehicleTelemetry * MAX_MAPPED_VEHICLES),
@@ -257,11 +269,9 @@ class rF2ScoringInfo(ctypes.Structure):
     ]
 
 
-class rF2Scoring(ctypes.Structure):
+class rF2Scoring(rF2MappedBufferVersionBlock):
     _pack_ = 4
     _fields_ = [
-        ("mVersionUpdateBegin", ctypes.c_uint),
-        ("mVersionUpdateEnd", ctypes.c_uint),
         ("mBytesUpdatedHint", ctypes.c_int),
         ("mScoringInfo", rF2ScoringInfo),
         ("mVehicles", rF2VehicleScoring * MAX_MAPPED_VEHICLES),

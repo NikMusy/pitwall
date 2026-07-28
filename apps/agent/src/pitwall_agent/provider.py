@@ -10,7 +10,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Protocol, runtime_checkable
 
-from pitwall_schema import ChannelKey
+from pitwall_schema import CHANNELS
 
 
 @dataclass(frozen=True, slots=True)
@@ -23,7 +23,7 @@ class Capabilities:
     """
 
     game: str
-    available: frozenset[ChannelKey]
+    available: frozenset[str]
     rate_hz: int
     all_cars: bool = field(
         default=False,
@@ -36,7 +36,19 @@ class Frame:
     """One instant of telemetry, already normalised to schema channel keys."""
 
     t: float
-    values: dict[ChannelKey, float | int | bool | None]
+    values: dict[str, float | int | bool | None]
+
+
+def unknown_channels(keys: object) -> set[str]:
+    """Keys that are not in the schema.
+
+    Provider keys are built with f-strings over the corner and band axes, which
+    no static type can check. This is the check that actually runs, and it also
+    catches a typo inside the f-string — which the Literal never would.
+    """
+    if not isinstance(keys, (set, frozenset, dict, list, tuple)):
+        raise TypeError(f"expected a collection of channel keys, got {type(keys)!r}")
+    return {str(key) for key in keys} - set(CHANNELS)
 
 
 class ProviderUnavailableError(RuntimeError):

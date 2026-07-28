@@ -15,9 +15,33 @@ Supported sims: Le Mans Ultimate / rFactor 2, F1 25, Assetto Corsa Competizione.
 
 ## Status
 
-**Early development — M0.** Nothing works yet. The repository currently
-contains the monorepo skeleton, the channel/protocol schema and CI. Follow
-[PLAN.md](PLAN.md) for what is actually implemented.
+**Early development — M1.** The Le Mans Ultimate path is built end to end:
+shared memory reader, channel mapping, WebSocket relay, live browser readouts,
+and a frozen Windows build. It has not yet been run against a real lap, because
+that needs the shared memory plugin installed — see
+[docs/lmu-setup.md](docs/lmu-setup.md). Follow [PLAN.md](PLAN.md) for exactly
+what is verified and what is not.
+
+Analysis (delta-time, track map, math channels) and strategy are not started.
+
+## Using it
+
+On the driver's PC:
+
+```bash
+pitwall-agent serve
+```
+
+It binds this machine's Tailscale address and prints a room code. The
+strategist opens that address in a browser over the tailnet and enters the
+code. Nothing is exposed to the public internet: the tailnet authenticates the
+device, the room code authorises the session.
+
+To check what the agent can currently see:
+
+```bash
+pitwall-agent doctor
+```
 
 ## Architecture
 

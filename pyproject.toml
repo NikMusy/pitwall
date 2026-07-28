@@ -29,6 +29,7 @@ dev = [
     "pytest-asyncio>=0.25",
     "types-PyYAML>=6.0",
     "httpx>=0.28",
+    "pyinstaller>=6.11",
 ]
 
 [tool.ruff]
@@ -47,6 +48,10 @@ exclude = ["_generated\\.py$"]
 [[tool.mypy.overrides]]
 module = ["pitwall_schema._generated"]
 ignore_errors = true
+
+[[tool.mypy.overrides]]
+module = ["msgpack.*"]
+ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 testpaths = ["packages/schema/tests", "apps/agent/tests", "apps/hub/tests"]

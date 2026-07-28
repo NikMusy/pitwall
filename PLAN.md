@@ -54,14 +54,31 @@ open until a run goes green.
 
 ### M1 — LMU live
 
-- [ ] rF2/LMU shared memory provider, double-buffer version check
+- [x] rF2 struct definitions from the plugin header, layout tests
+- [x] Shared memory reader with the double-buffer version check
+- [x] Channel mapping: units, tyre wear inversion, orientation angles
+- [x] Agent to hub to browser over WebSocket, MessagePack frames
+- [x] Room codes, roles, token, fan-out that drops slow viewers
+- [x] Hub binds the tailnet address, serves the built UI
+- [x] Live readouts in the browser, missing channels render as absent
+- [x] PyInstaller `--onedir` build, verified running frozen
 - [ ] `--record-raw` dump mode, fixtures committed
-- [ ] Agent to hub to browser over WebSocket, MessagePack frames
-- [ ] Live chart, core channels
+- [ ] **Blocked:** verification against real telemetry
 
-Blocked on: `rFactor2SharedMemoryMapPlugin64.dll` installed in LMU.
+Everything above is exercised by tests and by running the built executable.
+What has never seen real data is the mapping itself: the plugin is not
+installed, so no lap has ever gone through it.
 
-Done when: throttle, brake and speed are visible live in the browser.
+Two things are explicitly unverified until a dump exists:
+
+- The sign convention of `pitch` and `roll`. Magnitudes come from the
+  orientation basis vectors and are right; a sign could be inverted.
+- Whether `mDentSeverity[0..3]` really orders as front/rear/left/right. The
+  scale (0–2, so divided by 2) is from the header; the ordering is an
+  assumption.
+
+Done when: throttle, brake and speed are visible live in the browser, and the
+above are confirmed against a recorded lap.
 
 ### M2 — remaining providers
 
